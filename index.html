@@ -543,7 +543,7 @@
     <div class="hero-glow"></div>
     <div class="container hero-content">
         <!-- Badge pill above title — change the text inside -->
-        <div class="hero-badge">IoT Safety System · National University Manila</div>
+        <div class="hero-badge">IoT Safety System · National University - Dasmariñas</div>
 
         <!-- Main title -->
         <h1>GLUCS</h1>
@@ -580,7 +580,7 @@
 
             <!-- Left column: description + stats -->
             <div class="about-text reveal">
-                <p>GLUCS is a comprehensive safety mechanism engineered to address the limitations of traditional gas detectors. Developed by researchers at National University Manila, the system doesn't just alert — it acts.</p>
+                <p>GLUCS is a comprehensive safety mechanism engineered to address the limitations of traditional gas detectors. Developed by researchers at National University Dasmariñas, the system doesn't just alert — it acts.</p>
                 <p>By integrating the ESP32 microcontroller with high-precision sensors and automated actuators, GLUCS provides a proactive defense against residential and industrial hazards.</p>
 
                 <!-- Stats — change numbers and labels to match your project -->
@@ -760,7 +760,7 @@
                     <i class="fas fa-image"></i><span>glucs-1.jpg</span>
                 </div>
                 <div class="gallery-overlay">
-                    <span>ESP32 System Testing</span>
+                    <span>GLUCS Exhibit</span>
                     <small>glucs-1</small>
                 </div>
             </div>
@@ -773,7 +773,7 @@
                     <i class="fas fa-image"></i><span>glucs-2.jpg</span>
                 </div>
                 <div class="gallery-overlay">
-                    <span>MQ-2 Gas &amp; Smoke Sensor</span>
+                    <span>GLUCS Presentation</span>
                     <small>glucs-2</small>
                 </div>
             </div>
@@ -786,7 +786,7 @@
                     <i class="fas fa-image"></i><span>glucs-3.jpg</span>
                 </div>
                 <div class="gallery-overlay">
-                    <span>System Circuit Design</span>
+                    <span>GLUCS dashboard via Blynk IoT</span>
                     <small>glucs-3</small>
                 </div>
             </div>
@@ -799,7 +799,7 @@
                     <i class="fas fa-image"></i><span>glucs-4.jpg</span>
                 </div>
                 <div class="gallery-overlay">
-                    <span>Final Prototype Diorama</span>
+                    <span>Group Picture</span>
                     <small>glucs-4</small>
                 </div>
             </div>
@@ -812,7 +812,7 @@
                     <i class="fas fa-image"></i><span>glucs-5.jpg</span>
                 </div>
                 <div class="gallery-overlay">
-                    <span>Blynk Dashboard</span>
+                    <span>Final Prototype Diorama</span>
                     <small>glucs-5</small>
                 </div>
             </div>
@@ -825,7 +825,7 @@
                     <i class="fas fa-image"></i><span>glucs-6.jpg</span>
                 </div>
                 <div class="gallery-overlay">
-                    <span>Servo Valve Mechanism</span>
+                    <span>Overall Testing</span>
                     <small>glucs-6</small>
                 </div>
             </div>
@@ -899,10 +899,10 @@
         <div class="code-tabs reveal">
             <!-- Tab 1: active by default (matches id="tab-sensorRead") -->
             <button class="code-tab active" onclick="switchTab('sensorRead', this)">
-                <i class="fas fa-microchip"></i> Sensor Reading
+                <i class="fas fa-microchip"></i> Sensor Setup
             </button>
             <button class="code-tab" onclick="switchTab('alarmLogic', this)">
-                <i class="fas fa-bell"></i> Alarm Logic
+                <i class="fas fa-bell"></i> Sensor Logic
             </button>
             <button class="code-tab" onclick="switchTab('servoControl', this)">
                 <i class="fas fa-cog"></i> Servo Valve
@@ -923,7 +923,7 @@
                 <div class="code-block-wrapper">
                     <div class="code-header">
                         <!-- Edit filename and language label -->
-                        <span class="code-filename"><i class="fas fa-file-code"></i> sensor_read.ino</span>
+                        <span class="code-filename"><i class="fas fa-file-code"></i> sensor_setup.ino</span>
                         <span class="code-lang">C++ / Arduino</span>
                     </div>
                     <button class="copy-btn"   onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
@@ -938,12 +938,12 @@
 // Pin definitions — update if you rewire the hardware
 #define MQ2_PIN        34   // MQ-2 analog output → ESP32 ADC pin
 #define FLAME_PIN      35   // Flame sensor analog output
-#define WATER_LEVEL    32   // Water level sensor analog output
+#define WATER_LEVEL    36   // Water level sensor analog output
 
 // Threshold constants — tune these during calibration
 #define GAS_THRESHOLD   600  // ppm equivalent (0–4095 ADC scale)
-#define FLAME_THRESHOLD 500  // lower value = more fire detected
-#define WATER_LOW       300  // below this = reservoir nearly empty
+#define FLAME_THRESHOLD 1  // 0 value = fire detected
+#define WATER_LOW       500  // below this = reservoir nearly empty
 
 // Global sensor values updated every loop()
 int gasValue   = 0;
@@ -970,9 +970,14 @@ void setup() {
 }
 
 void loop() {
-    readSensors();
-    delay(1000); // poll every 1 second
-}</code></pre>
+    Blynk.run();
+    timer.run();
+    timer1.run();
+    gas();
+    ext();
+    smoke();
+}
+</code></pre>
                 </div>
                 <!-- Description below the code block — edit freely -->
                 <div class="code-desc">
@@ -984,7 +989,7 @@ void loop() {
             <div class="code-panel" id="tab-alarmLogic">
                 <div class="code-block-wrapper">
                     <div class="code-header">
-                        <span class="code-filename"><i class="fas fa-file-code"></i> alarm_logic.ino</span>
+                        <span class="code-filename"><i class="fas fa-file-code"></i> sensors_logic.ino</span>
                         <span class="code-lang">C++ / Arduino</span>
                     </div>
                     <button class="copy-btn"   onclick="copyCode(this)"><i class="fas fa-copy"></i> Copy</button>
@@ -995,9 +1000,9 @@ void loop() {
 // Requires: gasValue, flameValue, waterValue (from sensor module)
 // ──────────────────────────────────────────────────────────────
 
-#define FAN_RELAY   26  // Relay → 4 ventilation fans
+#define FAN_RELAY   13  // Relay → 2 ventilation fans
+#define FAN_RELAY2  2  // Relay → 2 ventilation fans
 #define PUMP_RELAY  27  // Relay → fire suppression water pump
-#define BUZZER_PIN  25  // Optional passive buzzer
 
 // DFPlayer Mini over UART2 (TX=16, RX=17)
 #include "DFRobotDFPlayerMini.h"
@@ -1011,43 +1016,106 @@ DFRobotDFPlayerMini dfPlayer;
 bool gasAlarmActive  = false;
 bool fireAlarmActive = false;
 
-void checkAlarms() {
-
-    // ── Gas / Smoke Alarm ──────────────────────────────────────
-    if (gasValue > GAS_THRESHOLD) {
-        if (!gasAlarmActive) {              // only trigger once on entry
-            gasAlarmActive = true;
-            digitalWrite(FAN_RELAY, HIGH);  // turn fans on
-            closeGasValve();                // servo shuts valve
-            dfPlayer.play(TRACK_GAS_ALARM); // voice guidance
-            Blynk.logEvent("gas_detected", "High gas level detected!");
+    // ── Gas / Smoke Logic ──────────────────────────────────────
+    void gas() 
+    {
+        int value = analogRead(sensor);
+        Serial.println("Gas Level: "+value);
+  
+        if(value<600)
+        {
+            digitalWrite(fan, LOW);
+            digitalWrite(fan1, LOW);
+            Blynk.virtualWrite(V4, LOW);
+            Blynk.virtualWrite(V1, LOW);
+            player.stop();
+            delay(1000);
         }
-    } else if (gasAlarmActive) {            // alarm was active, now safe
-        gasAlarmActive = false;
-        digitalWrite(FAN_RELAY, LOW);       // fans off
-        openGasValve();                     // re-open valve
-        dfPlayer.play(TRACK_ALL_CLEAR);
-    }
+        else if(value>600)
+        {
+            myServo1.write(90);
+            digitalWrite(fan, HIGH);
+            digitalWrite(fan1, HIGH);
+            Blynk.virtualWrite(V4, HIGH);
+            Blynk.virtualWrite(V1, HIGH);
+            Blynk.logEvent("gas");
+            player.play(2);
+            delay(5250);
+        }
+}
 
     // ── Fire Alarm ────────────────────────────────────────────
-    if (flameValue < FLAME_THRESHOLD) {     // low ADC = fire present
-        if (!fireAlarmActive) {
-            fireAlarmActive = true;
-            digitalWrite(FAN_RELAY,  HIGH); // smoke clearance fans
-            digitalWrite(PUMP_RELAY, HIGH); // water pump on
-            dfPlayer.play(TRACK_FIRE_ALARM);
-            Blynk.logEvent("fire_detected", "Flame sensor triggered!");
-        }
-    } else if (fireAlarmActive) {
-        fireAlarmActive = false;
-        digitalWrite(PUMP_RELAY, LOW);      // pump off when flame gone
-    }
+    void ext()
+{
+  Flame1 = digitalRead(35);
+  // reading the coming signal from the flame sensor
+  if(Flame1 == HIGH)
+  {
+  player.stop();
+  digitalWrite(pump, LOW);
+  digitalWrite(fan, LOW);
+  digitalWrite(fan1, LOW);
+  Blynk.virtualWrite(V5, LOW);
+  Blynk.virtualWrite(V4, LOW);
+  delay(1000);
+  }
+  else if(Flame1 == LOW)
+  {
+  player.play(1);
+  digitalWrite(pump, HIGH);
+  digitalWrite(fan, HIGH);
+  digitalWrite(fan1, HIGH);
+  Blynk.virtualWrite(V5, HIGH);
+  Blynk.virtualWrite(V4, HIGH);
+  Blynk.logEvent("fire");
+  delay(5000);
+  }
+}
 
     // ── Low Water Warning ─────────────────────────────────────
-    if (waterValue < WATER_LOW) {
-        Blynk.logEvent("low_water", "Suppression reservoir is low!");
-    }
-}</code></pre>
+    void wtr()
+{
+  int sensorValue = analogRead(waterSensorPin);
+  Serial.print("Sensor Value: ");
+  Serial.println(sensorValue);
+
+  if (sensorValue > waterThreshold) {
+    Serial.println("WATER LEVEL IS NORMAL.");
+    Blynk.virtualWrite(V2, "WATER LEVEL IS NORMAL.");
+    Blynk.virtualWrite(V7, sensorValue);
+  } else {
+    Serial.println("WATER LEVEL IS LOW.");
+    Blynk.virtualWrite(V2, "WATER LEVEL IS LOW.");
+    Blynk.virtualWrite(V7, sensorValue);
+  }
+}
+
+    // ── Smoke Warning ─────────────────────────────────────
+    void smoke()
+{
+  int value1 = analogRead(sensor1);
+  Serial.println("Smoke Value: "+value1);
+
+  if (value1<100)
+  {
+    player.stop();
+    digitalWrite(fan, LOW);
+    digitalWrite(fan1, LOW);
+    Blynk.virtualWrite(V4, LOW);
+    delay(1000);
+  }
+
+  else if ((value1 >= 250) && (value1 <= 500))
+  {
+    digitalWrite(fan, HIGH);
+    digitalWrite(fan1, HIGH);
+    Blynk.virtualWrite(V4, HIGH);
+    Blynk.logEvent("smoke");
+    player.play(3);
+    delay(5250);
+  }
+}
+</code></pre>
                 </div>
                 <div class="code-desc">
                     <strong>What this does:</strong> Evaluates sensor values each cycle and triggers the correct actuators. Boolean flags (<code>gasAlarmActive</code> / <code>fireAlarmActive</code>) prevent the audio and Blynk events from firing repeatedly — they trigger only on the <em>transition</em> from safe to unsafe, and again on recovery. Rename your SD audio files to match the track numbers defined at the top.
@@ -1072,51 +1140,22 @@ void checkAlarms() {
 
 #include &lt;ESP32Servo.h&gt;  // Use ESP32Servo, NOT the standard Servo.h
 
-#define SERVO_PIN  33   // Must be a PWM-capable ESP32 pin
+Servo myServo1;     
+int serpin1 = 12;   // Must be a PWM-capable ESP32 pin
 
-Servo gasValveServo;
+ myServo1.attach(serpin1);
+  myServo1.write(0);
 
 // Angle calibration — run the test sketch below to find correct values
 #define VALVE_OPEN_ANGLE   0    // degrees: fully open
 #define VALVE_CLOSED_ANGLE 90   // degrees: fully closed
 
-void setupServo() {
-    gasValveServo.setPeriodHertz(50);           // 50 Hz = standard servo
-    gasValveServo.attach(SERVO_PIN, 500, 2400); // pulse range in µs
-    gasValveServo.write(VALVE_OPEN_ANGLE);       // start open
-    delay(500);
+void setup() {
+myServo1.attach(serpin1);
+myServo1.write(0);
 }
 
-void closeGasValve() {
-    Serial.println("Closing gas valve...");
-    gasValveServo.write(VALVE_CLOSED_ANGLE);
-    delay(1000); // give servo time to reach position
-}
-
-void openGasValve() {
-    Serial.println("Opening gas valve...");
-    gasValveServo.write(VALVE_OPEN_ANGLE);
-    delay(1000);
-}
-
-// ── CALIBRATION SKETCH ────────────────────────────────────────
-// Upload this once to find the correct angles for YOUR valve.
-// Type degree values in Serial Monitor (115200 baud) and observe.
-// Then update VALVE_OPEN_ANGLE and VALVE_CLOSED_ANGLE above.
-//
-// void setup() {
-//     Serial.begin(115200);
-//     setupServo();
-// }
-// void loop() {
-//     if (Serial.available()) {
-//         int angle = Serial.parseInt();
-//         if (angle >= 0 && angle <= 180) {
-//             gasValveServo.write(angle);
-//             Serial.print("Servo at: "); Serial.println(angle);
-//         }
-//     }
-// }</code></pre>
+    </code></pre>
                 </div>
                 <div class="code-desc">
                     <strong>What this does:</strong> Controls the MG995 high-torque servo that physically rotates the gas valve. Uses the <code>ESP32Servo</code> library — if you use the standard Arduino <code>Servo.h</code> it will conflict with the ESP32's PWM. Run the commented calibration sketch first to discover the correct open/close angles for your valve before going to production.
@@ -1151,51 +1190,77 @@ char ssid[] = "YOUR_WIFI_SSID";
 char pass[] = "YOUR_WIFI_PASSWORD";
 
 BlynkTimer timer; // handles scheduled uploads without blocking loop()
-
-// Virtual pin mapping — must match widget config in Blynk app
-#define VPIN_GAS    V0  // Gauge or SuperChart widget
-#define VPIN_FLAME  V1  // LED indicator (255 = on, 0 = off)
-#define VPIN_WATER  V2  // Value display widget
-#define VPIN_FAN    V3  // Button widget — manual fan override
-#define VPIN_PUMP   V4  // Button widget — manual pump override
-#define VPIN_VALVE  V5  // Button widget — manual valve override
+BlynkTimer timer1;
 
 // Uploads live sensor readings to the Blynk dashboard
-void sendToBlynk() {
-    Blynk.virtualWrite(VPIN_GAS,   gasValue);
-    Blynk.virtualWrite(VPIN_FLAME, flameValue &lt; FLAME_THRESHOLD ? 255 : 0);
-    Blynk.virtualWrite(VPIN_WATER, waterValue);
+void display()
+{
+ int value = analogRead(sensor);
+ Blynk.virtualWrite(V0, value);
+
+ int value1 = analogRead(sensor1);
+ Blynk.virtualWrite(V6, value1);
 }
 
 // Called when user taps Fan button in the Blynk app
-BLYNK_WRITE(VPIN_FAN) {
-    digitalWrite(FAN_RELAY, param.asInt()); // 1=on, 0=off
+BLYNK_WRITE(V8)
+{
+  int fswitch = param.asInt();
+  if(fswitch == 0)
+  {
+    digitalWrite(fan, LOW);
+    digitalWrite(fan1, LOW);
+  }
+  else if(fswitch == 1)
+  {
+    digitalWrite(fan, HIGH);
+    digitalWrite(fan1, HIGH);
+    delay(5000);
+  }
 }
 
 // Called when user taps Pump button
-BLYNK_WRITE(VPIN_PUMP) {
-    digitalWrite(PUMP_RELAY, param.asInt());
+BLYNK_WRITE(V9)
+{
+  int pswitch = param.asInt();
+  if(pswitch == 0)
+  {
+    digitalWrite(pump, LOW);
+  }
+  else if(pswitch == 1)
+  {
+    digitalWrite(pump, HIGH);
+    delay(5000);
+  }
 }
 
 // Called when user taps Valve button
-BLYNK_WRITE(VPIN_VALVE) {
-    param.asInt() ? closeGasValve() : openGasValve();
+BLYNK_WRITE(V3)
+{
+  int sw = param.asInt();
+  if(sw == 0)
+  {
+    myServo1.write(90);
+  }
+  else if(sw == 1)
+  {
+    myServo1.write(0);
+
+  }
 }
 
 void setup() {
-    Serial.begin(115200);
-    Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
-    timer.setInterval(2000L, sendToBlynk); // upload every 2 seconds
-    setupServo();
-    // ... other setup calls (pin modes, DFPlayer init, etc.)
+    Serial.begin(9600);
+    Blynk.begin(auth, ssid, pass);
+    mySerial.begin(9600);
 }
 
 void loop() {
     Blynk.run();   // keeps the cloud connection alive
     timer.run();   // fires the sendToBlynk() task on schedule
-    readSensors();
-    checkAlarms();
-}</code></pre>
+    timer1.run();  // fires the sendToBlynk() task on schedule
+   }
+</code></pre>
                 </div>
                 <div class="code-desc">
                     <strong>What this does:</strong> Connects the ESP32 to Wi-Fi and the Blynk cloud, maps sensor data to virtual pins displayed on the dashboard, and lets users remotely override actuators from the mobile app via <code>BLYNK_WRITE()</code> handlers. Replace all four placeholder credential strings before uploading — never commit real credentials to a public repo.
@@ -1245,7 +1310,7 @@ void loop() {
             <div class="paper-info">
                 <!-- Edit the paper title and description -->
                 <h3>GLUCS – Gas Leak Detection and Safety System with Automated Response</h3>
-                <p>Full research paper detailing the design, implementation, testing methodology, and results of the GLUCS IoT safety system developed at National University Manila.</p>
+                <p>Full research paper detailing the design, implementation, testing methodology, and results of the GLUCS IoT safety system developed at National University Dasmariñas.</p>
                 <div class="paper-actions">
                     <!-- View — opens PDF in modal overlay -->
                     <button class="btn btn-secondary"
@@ -1375,12 +1440,12 @@ void loop() {
 
             <!-- Member 1 — Edit: initials, name, role, email -->
             <div class="contact-card">
-                <div class="contact-avatar">L</div>
+                <div class="contact-avatar">JL</div>
                 <h4>Luseco</h4>
-                <span class="contact-role">Project Lead</span>
+                <span class="contact-role">Hardware Engineer</span>
                 <!-- Replace href and text with the real email address -->
                 <a href="mailto:luseco@example.com" class="contact-email">
-                    <i class="fas fa-envelope"></i> luseco@example.com
+                    <i class="fas fa-envelope"></i> sonluseco@gmail.com
                 </a>
             </div>
 
@@ -1388,9 +1453,9 @@ void loop() {
             <div class="contact-card">
                 <div class="contact-avatar">AS</div>
                 <h4>Andre Sombillo</h4>
-                <span class="contact-role">Hardware Engineer</span>
+                <span class="contact-role">Project Lead</span>
                 <a href="mailto:sombillo@example.com" class="contact-email">
-                    <i class="fas fa-envelope"></i> sombillo@example.com
+                    <i class="fas fa-envelope"></i> andre.sombillo@gmail.com
                 </a>
             </div>
 
@@ -1398,7 +1463,7 @@ void loop() {
             <div class="contact-card">
                 <div class="contact-avatar">JS</div>
                 <h4>Jan Jerelle Sonio</h4>
-                <span class="contact-role">Software Developer</span>
+                <span class="contact-role">Structure Architect</span>
                 <a href="mailto:sonio@example.com" class="contact-email">
                     <i class="fas fa-envelope"></i> sonio@example.com
                 </a>
@@ -1408,9 +1473,9 @@ void loop() {
             <div class="contact-card">
                 <div class="contact-avatar">JP</div>
                 <h4>John Paulo Patayon</h4>
-                <span class="contact-role">IoT Integration</span>
+                <span class="contact-role">Software Developer</span>
                 <a href="mailto:patayon@example.com" class="contact-email">
-                    <i class="fas fa-envelope"></i> patayon@example.com
+                    <i class="fas fa-envelope"></i> paulopatayon@gmail.com
                 </a>
             </div>
 
@@ -1433,7 +1498,7 @@ void loop() {
             <p>For questions about the project, replication, or academic collaboration, feel free to send us a message at our group email.</p>
             <!-- Replace with your real group/project email address -->
             <a href="mailto:glucs.project@example.com" class="btn btn-secondary">
-                <i class="fas fa-envelope"></i> glucs.project@example.com
+                <i class="fas fa-envelope"></i> glucs.project@gmail.com
             </a>
         </div>
 
